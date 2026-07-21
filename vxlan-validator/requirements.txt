@@ -1,0 +1,9 @@
+# --- Core runtime (required, simulated mode uses only these) ---
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+bcrypt==4.2.1
+
+# --- Live device executors (lazy-imported; only needed for ssh/rest mode) ---
+# Kept in the image so flipping VXV_EXECUTOR=ssh|rest works with no rebuild.
+netmiko==4.5.0
+httpx==0.28.1

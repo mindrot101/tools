@@ -1,0 +1,529 @@
+S0099CORE001-1# sh running-config interface vxlan1
+interface vxlan 1 
+    source ip 10.15.99.3
+    no shutdown
+    vni 100
+        vlan 100
+        vtep-peer 10.15.102.3   
+    vni 194
+        vlan 194
+        vtep-peer 10.15.102.3   
+    vni 199
+        vlan 199
+        vtep-peer 10.15.102.3   
+    vni 610
+        vlan 610
+        vtep-peer 10.15.102.3   
+    vni 703
+        vtep-peer 10.15.102.3   
+    vni 850
+        vlan 850
+        vtep-peer 10.15.1.3   
+    vni 851
+        vlan 851
+        vtep-peer 10.15.102.3   
+    vni 918
+        vlan 918
+        vtep-peer 10.15.102.3   
+    vni 948
+        vlan 948
+        vtep-peer 10.15.120.3   
+    vni 950
+        vlan 950
+        vtep-peer 10.15.120.3   
+    vni 976
+        vlan 976
+        vtep-peer 10.15.102.3   
+    vni 989
+        vlan 989
+        vtep-peer 10.15.1.3   
+    vni 1181
+        vlan 1181
+        vtep-peer 10.15.1.3
+		
+S0099CORE001-1# show vni
+Invalid input: vni
+S0099CORE001-1# show v?
+  version  Displays switch version 
+  vlan     Show VLAN configuration 
+  vrf      VRF Configuration 
+  vrrp     Show VRRP information 
+  vsx      Show various VSX settings
+  
+S0099CORE001-1# show vsx status
+VSX Operational State
+---------------------
+  ISL channel             : In-Sync
+  ISL mgmt channel        : operational
+  Config Sync Status      : In-Sync
+  NAE                     : peer_reachable
+  HTTPS Server            : peer_reachable
+
+Attribute           Local               Peer
+------------        --------            --------
+ISL link            lag256              lag256
+ISL version         2                   2
+System MAC          02:01:00:00:01:00   02:01:00:00:01:00
+Platform            8325                8325
+Software Version    GL.10.13.1040       GL.10.13.1040
+Device Role         primary             secondary
+
+S0099CORE001-1# show interface vxlan1
+
+Interface vxlan1 is up 
+Admin state is up
+Description: 
+Underlay VRF: default
+Destination UDP port: 4789
+VTEP source IPv4 address: 10.15.99.3
+
+VNI        Routing      VLAN   VRF          VTEP Peers                                    Origin  
+---------- ------------ ------ ------------ -----------------------------------------     --------
+100        disabled     100    --           10.15.102.3                                     static     
+194        disabled     194    --           10.15.102.3                                     static     
+199        disabled     199    --           10.15.102.3                                     static     
+610        disabled     610    --           10.15.102.3                                     static     
+703        disabled     --     --           10.15.102.3                                     static     
+850        disabled     850    --           10.15.1.3                                       static     
+851        disabled     851    --           10.15.102.3                                     static     
+918        disabled     918    --           10.15.102.3                                     static     
+948        disabled     948    --           10.15.120.3                                     static     
+950        disabled     950    --           10.15.120.3                                     static     
+976        disabled     976    --           10.15.102.3                                     static     
+989        disabled     989    --           10.15.1.3                                       static     
+1181       disabled     1181   --           10.15.1.3                                       static     
+
+S0099CORE001-1# show interface loopback 1
+
+Interface loopback1 is up 
+ Admin state is up
+ VRF name is default 
+ Description: 
+ Hardware: Loopback, MAC Address: bc:d7:a5:3c:48:00 
+ IPv4 address 10.15.99.3/32
+ MTU 1500 
+ Type --
+ Full-duplex 
+ Speed 0 Mb/s 
+ Auto-negotiation is off
+ Flow-control: off 
+ Error-control: off 
+ MDI mode: none 
+ L3 Counters: Rx Disabled, Tx Disabled
+ 
+------------------- add this command, it seems like the most useful of the VXLAN commands -----------------------
+ 
+S0099CORE001-1# show interface vxlan 1 statistics  
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Interface                       RX Bytes          RX Packets            RX Drops            TX Bytes          TX Packets            TX Drops        RX Broadcast        RX Multicast        TX Broadcast        TX Multicast            RX Pause            TX Pause
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+vxlan1                                 0                   0                   0                   0                   0                   0                   0                   0                   0                   0                   0                   0
+
+
+-------------------- might as well add STP commands too since VXLAN is running at layer 2 -----------------------
+
+S0099CORE001-1# sh spanning-tree mst 1
+
+
+#### MST1
+Vlans mapped:  2-98,101-149,152-197,200-254,256-553,556-599,955,1201-1299
+Bridge         Address:02:01:00:00:01:00    Priority:4096
+Root           Address:02:01:00:00:01:00    Priority:4096
+               Port:0, Cost:0, Rem Hops:20
+
+Port           Role           State      Cost       Priority   Type             BPDU-Tx    BPDU-Rx    TCN-Tx     TCN-Rx
+-------------- -------------- ---------- ---------- ---------- ---------------- ---------- ---------- ---------- ----------
+1/1/2          Designated     Forwarding 2000       128        P2P              30731658   0          0          0
+1/1/4          Designated     Forwarding 20000      128        P2P              30732683   0          0          0
+1/1/5          Designated     Forwarding 20000      128        P2P              30732670   0          0          0
+1/1/18         Designated     Forwarding 20000      128        P2P              7795895    9          67         2
+1/1/26         Disabled       Down       20000      128        P2P              0          0          0          0
+1/1/43         Designated     Forwarding 2000       128        P2P Edge         30728136   0          0          0
+lag8           Designated     Forwarding 2000       64         P2P              30732492   0          10         0
+lag9           Designated     Forwarding 20000      64         P2P              20849051   0          2          0
+lag10          Designated     Forwarding 20000      64         P2P              30726928   0          10         0
+lag11          Designated     Forwarding 2000       64         P2P              30732667   28338      115        2
+lag12          Designated     Forwarding 2000       64         P2P              30732670   7347       113        4
+lag23          Designated     Forwarding 2000       64         P2P              30732703   0          50         0
+lag24          Designated     Forwarding 2000       64         P2P              30732731   34         97         22
+lag25          Designated     Forwarding 2000       64         P2P              30732139   16         115        8
+lag30          Disabled       Down       20000      64         P2P              22937026   5          46         4
+lag36          Designated     Forwarding 2000       64         P2P              30732736   20         115        7
+lag37          Designated     Forwarding 2000       64         P2P              30732736   21         115        7
+lag46          Designated     Forwarding 2000       64         P2P              30732713   7795133    59         58
+lag256         Designated     Forwarding 1          64         P2P              30732732   30732618   112        6
+
+Topology change flag          : True
+Number of topology changes    : 245
+Last topology change occurred : 7642213 seconds ago
+
+S0099CORE001-1# sh spanning-tree mst 2
+
+
+#### MST2
+Vlans mapped:  1,99,100,150,151,198,199,255,554,555,600-954,956-999,1100-1199,1900-1999
+Bridge         Address:02:01:00:00:01:00    Priority:16384
+Root           Address:02:01:00:00:02:00    Priority:4096
+               Port:lag46, Cost:2000, Rem Hops:19
+
+Port           Role           State      Cost       Priority   Type             BPDU-Tx    BPDU-Rx    TCN-Tx     TCN-Rx
+-------------- -------------- ---------- ---------- ---------- ---------------- ---------- ---------- ---------- ----------
+1/1/2          Designated     Forwarding 2000       128        P2P              30731658   0          0          0
+1/1/4          Designated     Forwarding 20000      128        P2P              30732683   0          0          0
+1/1/5          Designated     Forwarding 20000      128        P2P              30732670   0          0          0
+1/1/18         Designated     Forwarding 20000      128        P2P              7795895    9          67         2
+1/1/26         Disabled       Down       20000      128        P2P              0          0          0          0
+1/1/43         Designated     Forwarding 2000       128        P2P Edge         30728136   0          0          0
+lag8           Designated     Forwarding 2000       64         P2P              30732492   0          10         0
+lag9           Designated     Forwarding 20000      64         P2P              20849051   0          2          0
+lag10          Designated     Forwarding 20000      64         P2P              30726928   0          10         0
+lag11          Designated     Forwarding 2000       64         P2P              30732667   28338      115        2
+lag12          Designated     Forwarding 2000       64         P2P              30732670   7347       113        4
+lag23          Designated     Forwarding 2000       64         P2P              30732703   0          50         0
+lag24          Designated     Forwarding 2000       64         P2P              30732731   34         97         22
+lag25          Designated     Forwarding 2000       64         P2P              30732139   16         115        8
+lag30          Disabled       Down       20000      64         P2P              22937026   5          46         4
+lag36          Designated     Forwarding 2000       64         P2P              30732736   20         115        7
+lag37          Designated     Forwarding 2000       64         P2P              30732736   21         115        7
+lag46          Root           Forwarding 2000       64         P2P              30732713   7795133    59         58
+lag256         Designated     Forwarding 1          64         P2P              30732732   30732618   112        6
+
+Topology change flag          : True
+Number of topology changes    : 246
+Last topology change occurred : 7642215 seconds ago
+
+
+------------------------ also system resources if we want to add -----------------------------
+
+S0099CORE001-1# show system resource-utilization 
+
+System Resources:
+Processes                         : 297       
+CPU usage(%)                      : 3         
+CPU usage(% average over 1 minute): 7         
+CPU usage(% average over 5 minute): 8         
+Memory usage(%)                   : 28
+Open FD's                         : 2251      
+Storage 1: Endurance utilization = 4% (ssd), Health = normal
+
+Data written to various partitions since boot
+Nos         :      217 GB
+Log         :       18 MB
+Coredump    :        4 KB
+Security    :       14 MB
+Selftest    :        1 KB
+
+Storage partition usage(%)
+Nos         :        4 
+Log         :       30 
+Coredump    :        1 
+Security    :        1 
+Selftest    :        1 
+
+Process                 CPU Usage(%)    Memory Usage(%)   Open FD's
+-------------------------------------------------------------------------
+(sd-pam)                    0               0               7           
+aaautilscfgd                0               0               11          
+acctd                       0               2               12          
+acctsyslogd                 0               0               8           
+acpi_thermal_pm             0               0               0           
+acpid                       0               0               8           
+agetty                      0               0               4           
+ata_sff                     0               0               0           
+auditd                      0               0               11          
+bannerd                     0               0               9           
+bash                        0               0               3           
+bfdd                        0               0               14          
+blkcg_punt_bio              0               0               0           
+bluetoothd                  0               0               13          
+btd                         0               0               12          
+cdpd                        0               0               33          
+certmgr                     0               0               10          
+check-i2c-locku             0               0               4           
+cifsfileinfoput             0               0               0           
+cifsiod                     0               0               0           
+cifsoplockd                 0               0               0           
+classifierd                 0               0               10          
+client-insightd             0               0               9           
+containermgr                0               0               12          
+cpuhp/0                     0               0               0           
+cpuhp/1                     0               0               0           
+cpuhp/2                     0               0               0           
+cpuhp/3                     0               0               0           
+cpuhp/4                     0               0               0           
+cpuhp/5                     0               0               0           
+cpuhp/6                     0               0               0           
+cpuhp/7                     0               0               0           
+crash-handler               0               0               10          
+crond                       0               0               5           
+cryptd                      0               0               0           
+dbus-daemon                 0               0               15          
+dcmd                        0               0               10          
+deferredclose               0               0               0           
+dhcp-options-ar             0               0               9           
+dhcp-server-ada             0               0               8           
+dm_bufio_cache              0               0               0           
+dnldd                       0               0               9           
+dnsmasq                     0               0               5           
+ext4-rsv-conver             0               0               0           
+external_storag             0               0               10          
+fand                        0               0               11          
+fault-handlerd              0               0               10          
+feature-pack-mg             0               0               11          
+fibapp                      0               0               12          
+gbpr-relay                  0               0               9           
+head                        0               0               4           
+hotpatchd                   0               0               10          
+hpe-buttond                 0               0               10          
+hpe-cardd                   0               0               15          
+hpe-config                  0               1               14          
+hpe-credmgr                 0               0               11          
+hpe-entityd                 0               0               10          
+hpe-ipsecd                  0               0               9           
+hpe-isp                     0               0               7           
+hpe-ledarbd                 0               0               10          
+hpe-lpd                     0               0               30          
+hpe-mgmdd                   0               0               15          
+hpe-mgmtmd                  0               0               11          
+hpe-mstpd                   0               0               32          
+hpe-policyd                 0               0               10          
+hpe-profiled                0               0               10          
+hpe-rdiscd                  0               0               16          
+hpe-relay                   0               0               15          
+hpe-repld                   0               0               10          
+hpe-restd                   0               1               26          
+hpe-routing                 0               1               77          
+hpe-snmpd                   0               1               18          
+hpe-snmptrapd               0               0               9           
+hpe-sysmond                 9               0               12          
+hpe-tsdbd                   0               0               16          
+hpe-udldd                   0               0               18          
+hpe-vrrpd                   0               0               11          
+hpe-vsxd                    0               0               25          
+hpe-vsxkad                  0               0               17          
+hsc-db                      0               0               17          
+hsc-syncd                   0               0               12          
+icmp6_unreachab             0               0               0           
+inet_frag_wq                0               0               0           
+intfd                       0               0               11          
+ipsavd                      0               0               34          
+ipsla-responder             0               0               20          
+ipsla-sourced               0               0               40          
+ipv6_addrconf               0               0               0           
+irq/25-aerdrv               0               0               0           
+irq/26-aerdrv               0               0               0           
+irq/28-aerdrv               0               0               0           
+irq/29-aerdrv               0               0               0           
+irq/31-aerdrv               0               0               0           
+irq/32-aerdrv               0               0               0           
+irq/33-aerdrv               0               0               0           
+irq/34-aerdrv               0               0               0           
+irq/35-pciehp               0               0               0           
+irq/37-pciehp               0               0               0           
+irq/38-pciehp               0               0               0           
+jbd2/sda2-8                 0               0               0           
+jbd2/sda3-8                 0               0               0           
+jbd2/sda4-8                 0               0               0           
+jbd2/sda5-8                 0               0               0           
+jitterentropy-r             0               0               6           
+kauditd                     0               0               0           
+kblockd                     0               0               0           
+kcompactd0                  0               0               0           
+kdevtmpfs                   0               0               0           
+keychaind                   0               0               9           
+khungtaskd                  0               0               0           
+ksoftirqd/0                 0               0               0           
+ksoftirqd/1                 0               0               0           
+ksoftirqd/2                 0               0               0           
+ksoftirqd/3                 0               0               0           
+ksoftirqd/4                 0               0               0           
+ksoftirqd/5                 0               0               0           
+ksoftirqd/6                 0               0               0           
+ksoftirqd/7                 0               0               0           
+kswapd0                     0               0               0           
+kthreadd                    0               0               0           
+kworker/0:0-events          0               0               0           
+kworker/0:0H-events_highpri 0               0               0           
+kworker/0:1                 0               0               0           
+kworker/0:1H-kblockd        0               0               0           
+kworker/0:2-cgroup_destroy  0               0               0           
+kworker/1:0-mm_percpu_wq    0               0               0           
+kworker/1:0H-events_highpri 0               0               0           
+kworker/1:1-cgroup_destroy  0               0               0           
+kworker/1:1H-events_highpri 0               0               0           
+kworker/1:2-cgroup_destroy  0               0               0           
+kworker/2:0-events          0               0               0           
+kworker/2:0H-events_highpri 0               0               0           
+kworker/2:1-mm_percpu_wq    0               0               0           
+kworker/2:1H-events_highpri 0               0               0           
+kworker/3:0-events          0               0               0           
+kworker/3:0H-events_highpri 0               0               0           
+kworker/3:1-cgroup_destroy  0               0               0           
+kworker/3:1H-kblockd        0               0               0           
+kworker/3:2-mm_percpu_wq    0               0               0           
+kworker/4:0-events          0               0               0           
+kworker/4:0H-events_highpri 0               0               0           
+kworker/4:1-mm_percpu_wq    0               0               0           
+kworker/4:1H-events_highpri 0               0               0           
+kworker/5:0H-events_highpri 0               0               0           
+kworker/5:1-events          0               0               0           
+kworker/5:1H-events_highpri 0               0               0           
+kworker/5:2-cgroup_destroy  0               0               0           
+kworker/6:0-cgroup_destroy  0               0               0           
+kworker/6:0H-events_highpri 0               0               0           
+kworker/6:1-events          0               0               0           
+kworker/6:1H-events_highpri 0               0               0           
+kworker/6:2-mm_percpu_wq    0               0               0           
+kworker/7:0-mm_percpu_wq    0               0               0           
+kworker/7:0H-events_highpri 0               0               0           
+kworker/7:1H-kblockd        0               0               0           
+kworker/7:2-events          0               0               0           
+kworker/u16:0-events_unboun 0               0               0           
+kworker/u16:1-writeback     0               0               0           
+kworker/u16:2-events_unboun 0               0               0           
+kworker/u17:0               0               0               0           
+l2mac-mgrd                  0               2               10          
+l3-resmgrd                  0               0               10          
+lacpd                       0               0               25          
+lag10                       0               0               0           
+lag11                       0               0               0           
+lag12                       0               0               0           
+lag23                       0               0               0           
+lag24                       0               0               0           
+lag25                       0               0               0           
+lag256                      0               0               0           
+lag30                       0               0               0           
+lag36                       0               0               0           
+lag37                       0               0               0           
+lag46                       0               0               0           
+lag8                        0               0               0           
+lag9                        0               0               0           
+launchd                     0               0               10          
+ledd                        0               0               10          
+lldpd                       0               0               43          
+log-mgmtd                   0               0               11          
+log-monitord                0               0               9           
+log-persistd                0               0               9           
+log-proxyd                  0               0               21          
+maggd                       0               0               9           
+mcast-debugd                0               0               10          
+mcast-msdpd                 0               0               13          
+md                          0               0               0           
+migration/0                 0               0               0           
+migration/1                 0               0               0           
+migration/2                 0               0               0           
+migration/3                 0               0               0           
+migration/4                 0               0               0           
+migration/5                 0               0               0           
+migration/6                 0               0               0           
+migration/7                 0               0               0           
+mld                         0               0               0           
+mm_percpu_wq                0               0               0           
+mtmd                        0               0               12          
+ncvd                        0               0               9           
+ndmd                        0               0               64          
+netns                       0               0               0           
+nfsiod                      0               0               0           
+nginx                       0               0               17          
+ntp-mgrd                    0               0               11          
+ntpd                        0               0               122         
+nvme-delete-wq              0               0               0           
+nvme-reset-wq               0               0               0           
+nvme-wq                     0               0               0           
+oobmd                       0               0               11          
+oom_reaper                  0               0               0           
+ops-switchd                 42              2               40          
+ops_appsdnsclie             0               0               10          
+ovsdb-server                5               0               173         
+pbrd                        0               0               9           
+pim-bidid                   0               0               10          
+pimd                        0               0               15          
+platformhwd                 0               0               9           
+pmd                         0               0               14          
+port-accessd                0               0               15          
+portd                       0               0               22          
+powerd                      0               0               11          
+prometheus                  0               1               64          
+pspod                       0               0               10          
+radius-srv-trkd             0               0               10          
+raid5wq                     0               0               0           
+rbacd                       0               0               9           
+rcu_gp                      0               0               0           
+rcu_par_gp                  0               0               0           
+rcu_preempt                 0               0               0           
+rcu_tasks_kthre             0               0               0           
+rcu_tasks_rude_             0               0               0           
+rcu_tasks_trace             0               0               0           
+redirectord                 0               0               7           
+rpciod                      0               0               0           
+rsyslogd                    0               0               17          
+schedulerd                  0               0               9           
+scriptgend                  0               0               9           
+scsi_eh_0                   0               0               0           
+scsi_eh_1                   0               0               0           
+scsi_eh_2                   0               0               0           
+scsi_eh_3                   0               0               0           
+scsi_eh_4                   0               0               0           
+scsi_eh_5                   0               0               0           
+scsi_eh_6                   0               0               0           
+scsi_tmf_0                  0               0               0           
+scsi_tmf_1                  0               0               0           
+scsi_tmf_2                  0               0               0           
+scsi_tmf_3                  0               0               0           
+scsi_tmf_4                  0               0               0           
+scsi_tmf_5                  0               0               0           
+scsi_tmf_6                  0               0               0           
+selftestmond                0               0               9           
+sflowd                      0               0               10          
+sleep                       0               0               3           
+slub_flushwq                0               0               0           
+smartd                      0               0               3           
+smb3decryptd                0               0               0           
+smfd                        0               0               16          
+snmp-alarmd                 0               0               10          
+snmpd                       0               0               10          
+snmpd_wrapper               0               0               9           
+ssh-utild                   0               0               11          
+sshd                        0               0               11          
+svcdisc-gwd                 0               0               14          
+sysd                        0               0               10          
+systemd                     0               0               22          
+systemd-journal             0               0               6           
+systemd-logind              0               0               18          
+systemd-resolve             0               0               14          
+systemd-socket-             0               0               15          
+systemd-udevd               0               0               14          
+systemd-userdbd             0               0               8           
+systemd-userwor             0               0               5           
+tac_plus                    0               0               6           
+tacacs-srv-trkd             0               0               9           
+tee                         0               0               4           
+telnet-utilsd               0               0               9           
+tempd                       0               0               10          
+tpm_dev_wq                  0               0               0           
+tpmd                        0               0               7           
+tunneld                     0               0               10          
+usb-storage                 0               0               0           
+vland                       0               0               11          
+vlanmgmtd                   0               0               9           
+vrfapp                      0               0               10          
+vrfmgrd                     0               0               11          
+vsx-swupdated               0               0               12          
+vsx-syncd                   0               0               13          
+vsxmgmtd                    0               0               12          
+vtysh                       5               1               17          
+watchdog-interr             0               0               3           
+watchdogd                   0               0               0           
+writeback                   0               0               0           
+xprtiod                     0               0               0           
+xxd                         0               0               3           
+yang-resolverd              0               1               15          
+ztpd                        0               0               12          
+
+------------------------- and interface error-statistics -------------------------------
+
+S0099CORE001-1# sh int error-statistics non-zero 
+--------------------------------------------------------------------------------------------------------------------------------------------
+Interface                      RX Errors           TX Errors           RX Giants            RX Runts             CRC/FCS          Collisions
+--------------------------------------------------------------------------------------------------------------------------------------------
+1/1/23      - lag23                  887                   0                   0                   0                 887                   0

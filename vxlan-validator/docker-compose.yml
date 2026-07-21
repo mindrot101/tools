@@ -1,0 +1,21 @@
+services:
+  vxlan-validator:
+    build: .
+    image: aruba-vxlan-validator:1.0
+    container_name: vxlan-validator
+    restart: unless-stopped
+    ports:
+      - "${VXV_BIND:-8080}:8080"
+    env_file:
+      - .env
+    volumes:
+      - vxv-data:/data          # SQLite DB, audit log, generated API key
+      - ./certs:/certs:ro        # customer/switch CA bundle for REST TLS verify
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8080/api/health',timeout=3).status==200 else 1)"]
+      interval: 30s
+      timeout: 4s
+      retries: 3
+
+volumes:
+  vxv-data:

@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.env
+data/
+certs/
+*.tar.gz
+.git/
+.DS_Store
+tests/

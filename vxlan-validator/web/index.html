@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VXLAN Validator for Aruba CX</title>
+  <link rel="stylesheet" href="/css/app.css" />
+</head>
+<body>
+  <!-- Login gate -->
+  <div id="login" class="login-wrap hidden">
+    <div class="login-card">
+      <div class="brand"><span class="brand-mark">((•))</span>
+        <div><div class="brand-title">VXLAN Validator</div>
+        <div class="brand-sub">ARUBA CX · STATIC</div></div></div>
+      <p class="muted">Read-only fabric validation. Sign in to continue.</p>
+      <label>API key</label>
+      <input id="in-apikey" type="password" placeholder="vxv_…" autocomplete="off" />
+      <div class="or">— or local user —</div>
+      <div class="row2">
+        <input id="in-user" type="text" placeholder="username" autocomplete="off" />
+        <input id="in-pass" type="password" placeholder="password" autocomplete="off" />
+      </div>
+      <button id="btn-login" class="btn primary block">Sign in</button>
+      <div id="login-err" class="err"></div>
+    </div>
+  </div>
+
+  <!-- App shell -->
+  <div id="app" class="app hidden">
+    <aside class="sidebar">
+      <div class="brand"><span class="brand-mark">((•))</span>
+        <div><div class="brand-title">VXLAN Validator</div>
+        <div class="brand-sub">ARUBA CX · STATIC</div></div></div>
+      <nav id="nav"></nav>
+      <div class="side-foot">
+        <div class="pill executor" id="side-executor">simulated</div>
+        <button id="btn-logout" class="btn ghost sm block">Sign out</button>
+      </div>
+    </aside>
+    <main class="main">
+      <header class="topbar">
+        <div id="crumb" class="crumb">Dashboard</div>
+        <div class="badges">
+          <span class="pill lock">🔒 Read-only — enforced</span>
+          <span class="pill executor" id="top-executor">simulated executor</span>
+        </div>
+      </header>
+      <section id="view" class="view"></section>
+    </main>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>

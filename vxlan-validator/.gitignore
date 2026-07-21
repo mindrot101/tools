@@ -1,0 +1,18 @@
+# Runtime / secrets — never commit
+.env
+data/
+certs/
+*.tar.gz
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# OS / editor
+.DS_Store
+*.swp
+.idea/
+.vscode/
