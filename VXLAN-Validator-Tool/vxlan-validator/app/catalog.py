@@ -172,13 +172,13 @@ CATALOG: list[Test] = [
     Test("tun-peers", "Tunnel State", "Static peer list matches expected topology", "vtep", "critical",
          "Every remote VTEP loopback expected in the topology inventory must be present in the local "
          "static peer configuration.",
-         ["show vxlan vteps", "show running-config interface vxlan1"],
+         ["show int vxlan vteps", "show running-config interface vxlan1"],
          "Add the missing peer under `interface vxlan 1 / vni <id> / vtep-peer <ip>`. Static VXLAN has no auto-discovery.",
          rest=["/rest/v10.13/system/vxlans"]),
     Test("tun-up", "Tunnel State", "Tunnel operational state up", "tunnel", "critical",
          "Each configured tunnel must be in operational up state with non-zero encap/decap counters over "
          "the sample window.",
-         ["show vxlan vteps", "show interface vxlan 1 statistics"],
+         ["show int vxlan vteps", "show interface vxlan 1 statistics"],
          "Check underlay reachability, MTU, and that at least one VNI is mapped and admin up on both ends."),
     Test("tun-drops", "Tunnel State", "Tunnel drop counters within threshold", "tunnel", "high",
          "Encap/decap drops should be zero. Non-zero drops indicate MTU, ACL, or hardware-table issues.",

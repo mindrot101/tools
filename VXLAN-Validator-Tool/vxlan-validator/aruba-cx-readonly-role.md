@@ -75,7 +75,7 @@ From the service account, confirm a write is refused:
 ```
 switch# configure terminal
 % Command authorization failed.        <-- expected
-switch# show vxlan vteps               <-- permitted
+switch# show int vxlan vteps           <-- permitted
 ```
 
 Once verified, point a Connection profile in the validator at this account.

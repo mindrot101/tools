@@ -46,7 +46,7 @@ class Settings:
     rest_timeout: int = int(os.getenv("VXV_REST_TIMEOUT", "20"))
     max_sessions_per_switch: int = int(os.getenv("VXV_MAX_SESSIONS", "2"))
 
-    version: str = "1.0.0"
+    version: str = "1.1.0"
     read_only: bool = True  # not configurable; this tool never writes.
 
     audit_path: str = field(default="")

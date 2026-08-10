@@ -1,7 +1,7 @@
 services:
   vxlan-validator:
     build: .
-    image: aruba-vxlan-validator:1.0
+    image: aruba-vxlan-validator:1.1
     container_name: vxlan-validator
     restart: unless-stopped
     ports:

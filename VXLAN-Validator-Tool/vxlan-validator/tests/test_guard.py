@@ -5,7 +5,7 @@ from app.guard import vet_cli, vet_rest
 ALLOWED = [
     "show interface vxlan1",
     "show running-config interface vxlan1",
-    "show vxlan vteps",
+    "show int vxlan vteps",
     "show vni",
     "show vsx status keepalive",
     "show interface vxlan1 counters",

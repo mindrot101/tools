@@ -1,5 +1,8 @@
 # VXLAN Validator for Aruba CX
 
+**Version 1.1.0** · image tag `aruba-vxlan-validator:1.1` · see the [Changelog](#changelog)
+and [Updating an existing deployment](#updating-an-existing-deployment).
+
 A self-contained, **read-only** validation tool for **static (non-EVPN) VXLAN**
 fabrics on Aruba CX switches. It walks the full stack — physical, L2/STP,
 underlay routing, **MTU (including mismatch detection)**, L4, VTEP config, tunnel
@@ -115,14 +118,14 @@ On a build host with internet:
 
 ```bash
 docker compose build
-docker save aruba-vxlan-validator:1.0 | gzip > vxlan-validator-1.0.tar.gz
+docker save aruba-vxlan-validator:1.1 | gzip > vxlan-validator-1.1.tar.gz
 ```
 
-Copy `vxlan-validator-1.0.tar.gz`, `docker-compose.yml`, and `.env.example` to the
+Copy `vxlan-validator-1.1.tar.gz`, `docker-compose.yml`, and `.env.example` to the
 target, then:
 
 ```bash
-gunzip -c vxlan-validator-1.0.tar.gz | docker load
+gunzip -c vxlan-validator-1.1.tar.gz | docker load
 cp .env.example .env            # edit VXV_API_KEY
 docker compose up -d            # image already loaded; build step is skipped
 ```
@@ -133,6 +136,73 @@ docker compose up -d            # image already loaded; build step is skipped
 docker compose ps                       # STATUS should show (healthy)
 curl -s localhost:8080/api/health       # {"status":"ok",...}
 ```
+
+## Updating an existing deployment
+
+Upgrading an already-running container (e.g. **1.0 → 1.1**) keeps your data: the
+SQLite DB, audit log, and generated API key all live in the named `vxv-data`
+volume, and `/certs` is a host bind-mount — neither is touched by a rebuild.
+
+**No schema migration is required for the 1.1 release** — it's a
+command-correction fix (see the [Changelog](#changelog)). The steps below are the
+standard upgrade flow for any future version as well.
+
+### Standard (host with internet)
+
+From the repo directory on the deployed host:
+
+```bash
+cd vxlan-validator
+git pull                                # pull the updated source (or copy the new files over)
+
+docker compose build                    # rebuild the image (now tagged :1.1)
+docker compose up -d                    # recreate the container from the new image
+```
+
+`docker compose up -d` recreates the `vxlan-validator` container only because the
+image changed; the `vxv-data` volume is reattached as-is, so users, connection
+profiles, history, and the API key all carry over.
+
+Confirm the new version is live:
+
+```bash
+docker compose ps                       # STATUS → (healthy)
+curl -s localhost:8080/api/health       # {"status":"ok","version":"1.1.0",...}
+```
+
+The `version` field in `/api/health` (and the footer in the UI) should now read
+**1.1.0**. Old result/report history is preserved and remains readable.
+
+### Air-gapped site
+
+On the internet-connected build host, build and export the new image:
+
+```bash
+docker compose build
+docker save aruba-vxlan-validator:1.1 | gzip > vxlan-validator-1.1.tar.gz
+```
+
+Copy `vxlan-validator-1.1.tar.gz` and the updated `docker-compose.yml` to the
+target host, then load and recreate:
+
+```bash
+gunzip -c vxlan-validator-1.1.tar.gz | docker load     # loads aruba-vxlan-validator:1.1
+docker compose up -d                                    # recreate from the loaded image
+```
+
+Because `docker-compose.yml` now pins `image: aruba-vxlan-validator:1.1`, Compose
+recreates the container against the freshly loaded image while reusing the
+`vxv-data` volume.
+
+### Rollback
+
+The previous image is still present locally after an upgrade. To revert, point the
+`image:` tag in `docker-compose.yml` back to `aruba-vxlan-validator:1.0` and run
+`docker compose up -d`. The data volume is compatible in both directions for the
+1.0 ↔ 1.1 change (no schema change).
+
+> **Tip:** back up the data volume before any upgrade you're unsure about:
+> `docker run --rm -v vxv-data:/data -v "$PWD":/backup alpine tar czf /backup/vxv-data-backup.tgz -C /data .`
 
 ## First login
 
@@ -237,6 +307,26 @@ deployment.md  HANDOFF.md  aruba-cx-readonly-role.md
 
 **Static VXLAN only.** EVPN (BGP-EVPN address families, Type-2/3/5 routes,
 symmetric IRB) is intentionally out of scope. The tool never writes to a device.
+
+## Changelog
+
+### 1.1.0
+
+- **Fix: corrected the VTEP/tunnel state command.** The `tun-peers` and `tun-up`
+  checks issued `show vxlan vteps`, which AOS-CX rejects with
+  `Invalid input: vxlan`. On this platform the command is **`show int vxlan
+  vteps`**. The wrong command caused those checks (and anything downstream reading
+  tunnel/VNI/active-gateway state from that output) to report uniform false
+  failures. The catalog now issues `show int vxlan vteps`; the read-only guard
+  allowlist test and `aruba-cx-readonly-role.md` example were updated to match.
+- No database schema change; upgrading from 1.0 preserves all data (see
+  [Updating an existing deployment](#updating-an-existing-deployment)).
+
+### 1.0.0
+
+- Initial release: 49 read-only checks across 15 categories, three-layer
+  read-only enforcement, simulated / SSH / REST executors, seed-walk discovery,
+  single-container deployment.
 
 ## License
 
