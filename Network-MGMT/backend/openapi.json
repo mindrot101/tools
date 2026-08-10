@@ -1,0 +1,41 @@
+{
+  "openapi": "3.0.3",
+  "info": { "title": "Network Management Platform API", "version": "1.0.0", "description": "Device inventory, monitoring, discovery, alerts." },
+  "servers": [{ "url": "/api" }],
+  "components": {
+    "securitySchemes": { "TokenAuth": { "type": "apiKey", "in": "header", "name": "x-auth-token" } },
+    "schemas": {
+      "Login": { "type": "object", "required": ["username","password"], "properties": { "username": {"type":"string"}, "password": {"type":"string"} } },
+      "Device": { "type": "object", "required": ["hostname","ip_address","vendor","device_type","username"],
+        "properties": { "hostname":{"type":"string"}, "ip_address":{"type":"string"},
+          "vendor":{"type":"string","enum":["cisco","palo_alto","aruba","arista","juniper","other"]},
+          "device_type":{"type":"string","enum":["router","switch","firewall","load_balancer","other"]},
+          "username":{"type":"string"}, "password":{"type":"string"}, "snmp_version":{"type":"string","enum":["1","2c","3"]} } }
+    }
+  },
+  "security": [{ "TokenAuth": [] }],
+  "paths": {
+    "/auth/login": { "post": { "tags":["auth"], "security":[], "summary":"Login", "requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/Login"}}}}, "responses":{"200":{"description":"JWT + user"},"400":{"description":"Invalid credentials"}} } },
+    "/auth/me": { "get": { "tags":["auth"], "summary":"Current user", "responses":{"200":{"description":"user"},"401":{"description":"unauthorized"}} } },
+    "/auth/register": { "post": { "tags":["auth"], "summary":"Create user (admin only)", "responses":{"201":{"description":"created"},"401":{"description":"unauthorized"},"403":{"description":"forbidden"}} } },
+    "/auth/change-password": { "post": { "tags":["auth"], "summary":"Change own password", "responses":{"200":{"description":"ok"}} } },
+    "/devices": {
+      "get": { "tags":["devices"], "summary":"List devices (paginated)", "parameters":[{"name":"search","in":"query","schema":{"type":"string"}},{"name":"status","in":"query","schema":{"type":"string"}},{"name":"page","in":"query","schema":{"type":"integer"}},{"name":"limit","in":"query","schema":{"type":"integer"}}], "responses":{"200":{"description":"list"}} },
+      "post": { "tags":["devices"], "summary":"Create device (admin|operator)", "requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/Device"}}}}, "responses":{"201":{"description":"created"},"409":{"description":"duplicate hostname"}} }
+    },
+    "/devices/stats": { "get": { "tags":["devices"], "summary":"Status counts", "responses":{"200":{"description":"stats"}} } },
+    "/devices/{id}": {
+      "get": { "tags":["devices"], "summary":"Get device", "parameters":[{"name":"id","in":"path","required":true,"schema":{"type":"string"}}], "responses":{"200":{"description":"device"},"404":{"description":"not found"}} },
+      "put": { "tags":["devices"], "summary":"Update device (admin|operator)", "parameters":[{"name":"id","in":"path","required":true,"schema":{"type":"string"}}], "responses":{"200":{"description":"updated"}} },
+      "delete": { "tags":["devices"], "summary":"Delete device (admin)", "parameters":[{"name":"id","in":"path","required":true,"schema":{"type":"string"}}], "responses":{"200":{"description":"deleted"}} }
+    },
+    "/devices/{id}/health-check": { "post": { "tags":["monitoring"], "summary":"Run health check", "parameters":[{"name":"id","in":"path","required":true,"schema":{"type":"string"}}], "responses":{"200":{"description":"result"}} } },
+    "/devices/{id}/monitoring": { "get": { "tags":["monitoring"], "summary":"Monitoring history", "parameters":[{"name":"id","in":"path","required":true,"schema":{"type":"string"}}], "responses":{"200":{"description":"history"}} } },
+    "/devices/{id}/config": { "get": { "tags":["config"], "summary":"Fetch + back up config (admin)", "parameters":[{"name":"id","in":"path","required":true,"schema":{"type":"string"}}], "responses":{"200":{"description":"config"}} } },
+    "/devices/{id}/backups": { "get": { "tags":["config"], "summary":"List config backups", "parameters":[{"name":"id","in":"path","required":true,"schema":{"type":"string"}}], "responses":{"200":{"description":"backups"}} } },
+    "/devices/discover": { "post": { "tags":["discovery"], "summary":"Discover network (admin)", "responses":{"200":{"description":"discovered"}} } },
+    "/alerts": { "get": { "tags":["alerts"], "summary":"List alerts", "responses":{"200":{"description":"alerts"}} } },
+    "/alerts/{id}/ack": { "post": { "tags":["alerts"], "summary":"Acknowledge alert", "parameters":[{"name":"id","in":"path","required":true,"schema":{"type":"string"}}], "responses":{"200":{"description":"ok"}} } },
+    "/audit": { "get": { "tags":["audit"], "summary":"Audit log (admin)", "responses":{"200":{"description":"logs"}} } }
+  }
+}

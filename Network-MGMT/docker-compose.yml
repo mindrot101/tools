@@ -1,0 +1,122 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: network-mgmt-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: network_mgmt
+      POSTGRES_USER: network_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-network_pass}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d
+    ports:
+      - "127.0.0.1:5432:5432"
+    networks: [network-mgmt-net]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U network_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: network-mgmt-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "127.0.0.1:6379:6379"
+    networks: [network-mgmt-net]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: { context: ./backend, dockerfile: Dockerfile }
+    container_name: network-mgmt-backend
+    restart: unless-stopped
+    user: "${APP_UID:-1002}:${APP_GID:-1002}"
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - DATABASE_URL=postgresql://network_user:${POSTGRES_PASSWORD:-network_pass}@postgres:5432/network_mgmt
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=${JWT_SECRET:?set JWT_SECRET in .env}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-8h}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY:?set ENCRYPTION_KEY in .env}
+      - CORS_ORIGIN=${CORS_ORIGIN:-}
+      - DB_SYNC_ALTER=${DB_SYNC_ALTER:-true}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_SECURE=${SMTP_SECURE:-false}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASS=${SMTP_PASS:-}
+      - SMTP_FROM=${SMTP_FROM:-netmgmt@localhost}
+      - ALERT_EMAIL_TO=${ALERT_EMAIL_TO:-}
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    networks: [network-mgmt-net]
+    healthcheck:
+      test: ["CMD", "node", "healthcheck.js"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  worker:
+    build: { context: ./backend, dockerfile: Dockerfile }
+    container_name: network-mgmt-worker
+    restart: unless-stopped
+    user: "${APP_UID:-1002}:${APP_GID:-1002}"
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://network_user:${POSTGRES_PASSWORD:-network_pass}@postgres:5432/network_mgmt
+      - REDIS_URL=redis://redis:6379
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY:?set ENCRYPTION_KEY in .env}
+      - DISCOVERY_NETWORK=${DISCOVERY_NETWORK:-192.168.1.0/24}
+      - ALERT_CPU_THRESHOLD=${ALERT_CPU_THRESHOLD:-90}
+      - ALERT_WEBHOOK_URL=${ALERT_WEBHOOK_URL:-}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_SECURE=${SMTP_SECURE:-false}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASS=${SMTP_PASS:-}
+      - SMTP_FROM=${SMTP_FROM:-netmgmt@localhost}
+      - ALERT_EMAIL_TO=${ALERT_EMAIL_TO:-}
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    networks: [network-mgmt-net]
+    healthcheck:
+      disable: true
+    command: ["node", "worker.js"]
+
+  frontend:
+    build: { context: ., dockerfile: frontend/Dockerfile }
+    container_name: network-mgmt-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on: [backend]
+    networks: [network-mgmt-net]
+
+networks:
+  network-mgmt-net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:

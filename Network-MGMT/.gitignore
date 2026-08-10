@@ -1,0 +1,17 @@
+# dependencies
+**/node_modules/
+
+# environment & secrets (keep .env.example)
+.env
+*.env.local
+
+# build output
+frontend/dist/
+
+# logs
+*.log
+npm-debug.log*
+
+# OS cruft
+.DS_Store
+Thumbs.db
