@@ -1,0 +1,68 @@
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: pcap-web-redis
+    # internal only — no published port, so it cannot clash with the other Redis on the host
+    expose: ["6379"]
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+      args: { UID: "1002", GID: "1002" }
+    image: pcap-web-analyzer-backend
+    container_name: pcap-web-backend
+    ports: ["8081:8000"]   # host 8081 -> 8000 (8000 used by aruba-cx-backend)
+    volumes:
+      - ./uploaded_pcaps:/app/uploaded_pcaps
+      - ./data:/app/data
+    environment:
+      PYTHONUNBUFFERED: "1"
+      DATA_DIR: /app/data
+      UPLOAD_DIR: /app/uploaded_pcaps
+      MAX_UPLOAD_MB: "512"
+      KEEP_RAW: "false"
+      EXTRACT_FILES: "false"
+      REDIS_URL: redis://redis:6379/0
+      AUTH_ENABLED: "false"
+      SECRET_KEY: change-me-in-prod
+      RETENTION_DAYS: "0"
+      RATE_LIMIT_PER_MIN: "120"
+      ENABLE_LIVE_CAPTURE: "true"
+      GEOIP_DB: /app/data/GeoLite2-City.mmdb
+    cap_add: ["NET_RAW"]
+    depends_on: [redis]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0) if urllib.request.urlopen('http://localhost:8000/health').status==200 else sys.exit(1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: ./backend
+      args: { UID: "1002", GID: "1002" }
+    image: pcap-web-analyzer-backend
+    container_name: pcap-web-worker
+    command: ["rq", "worker", "--url", "redis://redis:6379/0", "pcap"]
+    cap_add: ["NET_RAW"]
+    volumes:
+      - ./uploaded_pcaps:/app/uploaded_pcaps
+      - ./data:/app/data
+    environment:
+      DATA_DIR: /app/data
+      UPLOAD_DIR: /app/uploaded_pcaps
+      EXTRACT_FILES: "false"
+      KEEP_RAW: "false"
+      GEOIP_DB: /app/data/GeoLite2-City.mmdb
+    depends_on: [redis, backend]
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: pcap-web-frontend
+    ports: ["8080:80"]   # host 8080 -> 80 (3000 used by aruba-cx-frontend)
+    depends_on: [backend]
+    restart: unless-stopped

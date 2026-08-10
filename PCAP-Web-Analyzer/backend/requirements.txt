@@ -1,0 +1,7 @@
+fastapi==0.115.6
+uvicorn==0.34.0
+dpkt==1.9.8
+python-multipart==0.0.20
+redis==5.2.1
+rq==2.1.0
+geoip2==4.8.0
